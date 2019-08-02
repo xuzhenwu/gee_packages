@@ -53,70 +53,7 @@ function setweights(ImgCol, bound, ymin) {
     return w;
 }
 
-/**
- * Bisquare weights updating function
- *
- * Modified weights of each points according to residual.
- * Suggest to replaced NA values with a fixed number such as ymin.
- * Otherwise, it will introduce a large number of missing values in fitting
- * result, for lowess, moving average, whittaker smoother and Savitzky-Golay
- * filter.
- *
- * Robust weights are given by the bisquare function like lowess function
- * Reference:
- *     https://cn.mathworks.com/help/curvefit/smoothing-data.html#bq_6ys3-3.
- * re = Ypred - Yobs;      % residual
- * sc = 6 * median(abs(re));    % overall scale estimate 
- * w  = zeros(size(re)); 
- * I  = re < sc & re > 0
- * 
- * % only decrease the weight of overestimated values
- * w(I) = ( 1 - (re(I)/sc).^2 ).^2; %NAvalues weighting will be zero
- * % overestimated outliers and weights less than wmin, set to wmin
- * w(w < wmin || re > sc) = wmin;
- * 
- * @param  {ee.Image<array>} re   residuals (predicted value - original value). re < 0
- *                         means those values are overestimated. In order to 
- *                         approach upper envelope reasonably, we only decrease 
- *                         the weight of overestimated points.
- * @param  {ee.Image<array>} w    Original weights
- * @param  {Double}          wmin Minimum weight in weights updating procedure.
- * @return {ee.Image<array>} wnew New weights returned.
- */
-function wBisquare_array(re, w, wmin) {
-    // This wmin is different from QC module, 
-    // When too much w approaches zero, it will lead to `matrixInverse` error. 
-    // Genius patch! 2018-07-28
-    wmin = wmin || 0.05; 
-    
-    var median = re.abs().arrayReduce(ee.Reducer.percentile([50]), [0]);
-    var sc = median.multiply(6.0).arrayProject([0]).arrayFlatten([['sc']]);
-    
-    var w_new = re.expression('pow(1 - pow(b()/sc, 2), 2)', { sc: sc });
-    
-    // if w is not empty
-    if (w){
-        w_new = w_new.expression('(re >  0)*b()*w + (re <= 0)*w' , { re:re, w:w });
-    }
-    // overestimated outliers and weights less than wmin, set to wmin
-    w_new = w_new.expression('(re >= sc || b() < wmin)*wmin + (re < sc) * b()', 
-        { re:re, sc:sc, wmin:wmin});
-    return w_new;
-}
 
-// function wBisquare(re) {
-//     re = ee.ImageCollection(re);
-//     var median = re.reduce(ee.Reducer.percentile([50])); 
-//     var sc = median.multiply(6.0); 
-//     var w = re.map(function(res) {
-//         var img = res.expression('pow(1 - pow(b()/sc, 2), 2)', {sc:sc}); 
-//         return img.where(res.gte(sc), 0.0)
-//             .copyProperties(res, ['system:id', 'system:index', 'system:time_start']);
-//     });
-//     w = w.toArray();//.toArray(1)
-//     return w;
-// }
-// 
 /** 
  * replace img masked region with newimg
  *
@@ -261,11 +198,9 @@ function historyInterp(imgcol, imgcol_his_mean, prop, nodata){
 }
 
 exports = {
-    setweights              : setweights,
-    wBisquare_array         : wBisquare_array,
-
-    replace_mask            : replace_mask,  
-    historyInterp           : historyInterp,
-    linearInterp            : linearInterp,  
-    addTimeBand             : addTimeBand,
+    setweights   : setweights,
+    replace_mask : replace_mask, 
+    historyInterp: historyInterp,
+    linearInterp : linearInterp,  
+    addTimeBand  : addTimeBand,
 };

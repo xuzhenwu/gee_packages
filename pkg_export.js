@@ -252,7 +252,7 @@ pkg_export.ExportImg = function(Image, task, range, cellsize, type, folder, crs,
     range  = range  || [-180, -60, 180, 90];
     type   = type   || 'drive';
     folder = folder || "";
-    crs    = crs    || 'SR-ORG:6974';
+    crs    = crs    || 'EPSG:4326'; //'SR-ORG:6974';
 
     if (crsTransform === undefined){
         bounds = ee.Geometry.Rectangle(range, 'EPSG:4326', false); //[xmin, ymin, xmax, ymax]
@@ -318,7 +318,7 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, range, cellsize, type,
         .map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
 
     type   = type   || 'drive';
-    crs    = crs    || 'SR-ORG:6974';
+    crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
     prefix = prefix || '';
 
     var n = dateList.length;

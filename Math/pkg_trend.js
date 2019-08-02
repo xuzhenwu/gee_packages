@@ -103,6 +103,7 @@ function addSeasonProb(img, pheno){
 
 /** add dn prop to every img */
 function add_dn_date(img, beginDate, IncludeYear, n){
+    beginDate = beginDate || img.get('system:time_start');
     if (IncludeYear === undefined) { IncludeYear = true; }
     n = n || 8;
 
@@ -225,9 +226,12 @@ function aggregate_prop(ImgCol, prop, reducer, delta){
     return ee.ImageCollection(ImgCol_new);
 }
 
-function imgcol_last(imgcol){
+function imgcol_last(imgcol, n){
+    n = n || 1
     // ee.Image(imgcol_grace.reduce(ee.Reducer.last())); properties are missing
-    return ee.Image(imgcol.toList(1, imgcol.size().subtract(1)).get(0));
+    var res = imgcol.toList(n, imgcol.size().subtract(n)); 
+    if (n <= 1) { res = ee.Image(res.get(0)); }
+    return res;
 }
 
 function showdata(ImgCol) {
@@ -239,6 +243,7 @@ exports = {
     addSeasonProb       : addSeasonProb,
     add_dn_date         : add_dn_date,
     add_dn              : add_dn,
+    dailyImgIters       : dailyImgIters,
     hour3Todaily        : hour3Todaily, 
     aggregate_prop      : aggregate_prop,
     linearTrend         : linearTrend,
