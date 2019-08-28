@@ -87,7 +87,10 @@ function grad_legend(viz, title, IsPlot, position) {
     // create thumbnail from the image
     var thumbnail = ui.Thumbnail({
         image: legendImage,
-        params: { bbox: '0, 0, 20, 100', dimensions: '20x200' },
+        params: { 
+          //bbox: '0, 0, 20, 100', 
+          region: ee.Geometry.Rectangle([0, 0, 20, 100]),
+          dimensions: '20x200' },
         style: { padding: '0 0 0 10px', position: 'bottom-center', margin: '0 0 0px 0' }
     });
     legend.add(thumbnail);
