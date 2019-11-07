@@ -249,15 +249,16 @@ pkg_export.getProj = function(img){
 pkg_export.ExportImg = function(Image, task, range, cellsize, type, folder, crs, crsTransform){
     var bounds; // define export region
 
-    range  = range  || [-180, -60, 180, 90];
-    type   = type   || 'drive';
-    folder = folder || "";
-    crs    = crs    || 'EPSG:4326'; //'SR-ORG:6974';
+    range    = range    || [-180, -60, 180, 90];
+    cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
+    type     = type     || 'drive';
+    folder   = folder   || "";
+    crs      = crs      || 'EPSG:4326'; //'SR-ORG:6974';
 
     if (crsTransform === undefined){
         bounds = ee.Geometry.Rectangle(range, 'EPSG:4326', false); //[xmin, ymin, xmax, ymax]
     }
-
+    
     // var crsTransform  = [cellsize, 0, -180, 0, -cellsize, 90]; //left-top
     var params = {
         image        : Image,
@@ -317,6 +318,7 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, range, cellsize, type,
     dateList = dateList || ee.List(ImgCol.aggregate_array('system:time_start'))
         .map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
 
+    cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
     type   = type   || 'drive';
     crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
     prefix = prefix || '';
