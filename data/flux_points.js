@@ -2,14 +2,20 @@
 var points = ee.FeatureCollection("users/kongdd/shp/flux-212");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 // var points = require('users/kongdd/public:data/flux_points.js').points;
-points     = points.select(['site']); // reduce the export data size, only one band left
 
+function rename_sites(points) {
+    // reduce the export data size, only one band left
+    points = points.select(['site']); 
+    points = points.toList(points.size()).map(function(f){
+        f = ee.Feature(f);
+        return f.set('system:index', f.get('site'));
+    });
+    points = ee.FeatureCollection(points);    
+    return(points);
+}
+
+points = rename_sites(points);
 /** 1. Change points system:index, has to convert to list first. */
-points = points.toList(points.size()).map(function(f){
-    f = ee.Feature(f);
-    return f.set('system:index', f.get('site'));
-});
-points = ee.FeatureCollection(points);
 
 /**
  * Select the first `len` elements, and remove Id_del points
