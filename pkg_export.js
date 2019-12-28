@@ -201,10 +201,12 @@ pkg_export.clip = function(ImgCol, poly){
  * @example
  * pkg_export.getDimensions(range, cellsize)
  */
-pkg_export.getDimensions = function(range, cellsize){
-    var step   = cellsize; // degrees
-    var sizeX  = (range[2] - range[0]) / cellsize;
-    var sizeY  = (range[3] - range[1]) / cellsize;
+pkg_export.getDimensions = function (range, cellsize) {
+    if (!range || !cellsize) return undefined;
+
+    var step = cellsize; // degrees
+    var sizeX = (range[2] - range[0]) / cellsize;
+    var sizeY = (range[3] - range[1]) / cellsize;
     sizeX = Math.round(sizeX);
     sizeY = Math.round(sizeY);
 
@@ -220,120 +222,11 @@ pkg_export.getProj = function(img){
     var prj_dict = prj.getInfo();
     
     return {
-        prj:prj, 
-        scale:prj.nominalScale(),
-        crs:prj_dict.crs,
-        crsTransform: prj_dict.transform
+        prj          : prj, 
+        scale        : ee.Number(prj.nominalScale()).getInfo(),
+        crs          : prj_dict.crs,
+        crsTransform : prj_dict.transform
     };
-};
-
-
-/**
- * ExportImg
- *
- * @param {ee.Image} Image     The image to export.
- * @param {String} task      The file name of exported image
- * @param {array.<number>}     range     [lon_min, lat_min, lon_max, lat_max]
- * @param {double} cellsize  cellsize (in the unit of degree), used to calculate 
- * dimension.
- * @param {String} type      export type, i.e. 'asset', 'cloud' and 'drive'
- * @param {String} folder    The Folder that the export will reside in. If 
- * export type is cloud or asset, folder need to be absolute path.
- * @param {String} crs       CRS to use for the exported image.
- * @param {String} crsTransform  Affine transform to use for the exported image. 
- * Requires "crs" to be defined.
- * 
- * @example
- * ExportImg(Image, task, range, cellsize, type, folder, crs, crs_trans)
- */
-pkg_export.ExportImg = function(Image, task, range, cellsize, type, folder, crs, crsTransform){
-    var bounds; // define export region
-
-    range    = range    || [-180, -60, 180, 90];
-    cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
-    type     = type     || 'drive';
-    folder   = folder   || "";
-    crs      = crs      || 'EPSG:4326'; //'SR-ORG:6974';
-
-    if (crsTransform === undefined){
-        bounds = ee.Geometry.Rectangle(range, 'EPSG:4326', false); //[xmin, ymin, xmax, ymax]
-    }
-    
-    // var crsTransform  = [cellsize, 0, -180, 0, -cellsize, 90]; //left-top
-    var params = {
-        image        : Image,
-        description  : task,
-        crs          : crs,
-        crsTransform : crsTransform,
-        region       : bounds,
-        dimensions   : pkg_export.getDimensions(range, cellsize),
-        maxPixels    : 1e13
-    };
-
-    switch(type){
-        case 'asset':
-            params.assetId = folder.concat('/').concat(task); //projects/pml_evapotranspiration/;
-            Export.image.toAsset(params);  
-            break;
-    
-        case 'cloud':
-            params.bucket         = "kongdd";
-            params.fileNamePrefix = folder.concat('/').concat(task);
-            params.skipEmptyTiles = true;
-            Export.image.toCloudStorage(params);
-            break;
-        
-        case 'drive':
-            params.folder         = folder;
-            params.skipEmptyTiles = true;
-            Export.image.toDrive(params);  
-            break;
-    }
-    // print(params);
-};
-
-/**
- * Batch export GEE ImageCollection
- *
- * @param {ee.ImageCollection} ImgCol    The ImageCollection to export.
- * @param {array.<string>}     dateList  Corresponding date string list of ImgCol
- * @param {array.<number>}     range     [lon_min, lat_min, lon_max, lat_max]
- * @param {double} cellsize  cellsize (in the unit of degree), used to calculate 
- * dimension.
- * @param {String} type      export type, i.e. 'asset', 'cloud' and 'drive'
- * @param {String} folder    The Folder that the export will reside in. If 
- * export type is cloud or asset, folder need to be absolute path.
- * @param {String} crs       CRS to use for the exported image.
- * @param {String} crsTransform  Affine transform to use for the exported image. 
- * Requires "crs" to be defined.
- * @param {[type]} prefix    The prefix of the exported file name.
- */
-pkg_export.ExportImgCol = function(ImgCol, dateList, range, cellsize, type, 
-    folder, crs, crsTransform, prefix)
-{    
-    /** 
-     * If dateList was undefined, this function is low efficient.
-     * ee.ImageCollection.toList() is quite slow, often lead to time out.
-     */
-    dateList = dateList || ee.List(ImgCol.aggregate_array('system:time_start'))
-        .map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
-
-    cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
-    type   = type   || 'drive';
-    crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
-    prefix = prefix || '';
-
-    var n = dateList.length;
-    
-    for (var i = 0; i < n; i++) {
-        // var img  = ee.Image(colList.get(i));
-        var date = dateList[i];
-        var img  = ee.Image(ImgCol.filterDate(date).first()); 
-        // var task = img.get('system:id');//.getInfo();
-        var task = prefix + date;
-        print(task);
-        pkg_export.ExportImg(img, task, range, cellsize, type, folder, crs, crsTransform); 
-    }
 };
 
 pkg_export.export_shp = function(features, file, folder, fileFormat){
