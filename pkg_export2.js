@@ -34,6 +34,7 @@ var pkg_export = require('users/kongdd/public:pkg_export.js');
  */
 // // examples
 // // https://code.earthengine.google.com/235425776856f67349ffae2e1343f1ad
+// var pkg_export = require('users/kongdd/public:pkg_export.js');
 // var imgcol_land = ee.ImageCollection("MODIS/006/MCD12Q1");
 // var img = imgcol_land.first().select(0);
 // var prj = pkg_export.getProj(imgcol_land);
