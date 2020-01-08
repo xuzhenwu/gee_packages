@@ -10,7 +10,6 @@ var MOD13Q1 = ee.ImageCollection("MODIS/006/MOD13Q1"),
     MOD16A2 = ee.ImageCollection("MODIS/NTSG/MOD16A2/105"),
     NLCD = ee.ImageCollection("USGS/NLCD"),
     MCD12Q1_005 = ee.ImageCollection("MODIS/051/MCD12Q1"),
-    MCD12Q1_006 = ee.ImageCollection("projects/pml_evapotranspiration/PML_INPUTS/MODIS/MCD12Q1_006"),
     region = /* color: #0b4a8b */ee.Geometry({
       "type": "GeometryCollection",
       "geometries": [
@@ -50,7 +49,8 @@ var MOD13Q1 = ee.ImageCollection("MODIS/006/MOD13Q1"),
       "coordinates": []
     }),
     imgcol_pmlv2 = ee.ImageCollection("projects/pml_evapotranspiration/PML/OUTPUT/PML_V2_8day"),
-    imgcol_mod16a2 = ee.ImageCollection("MODIS/NTSG/MOD16A2/105");
+    imgcol_mod16a2 = ee.ImageCollection("MODIS/NTSG/MOD16A2/105"),
+    MCD12Q1_006 = ee.ImageCollection("MODIS/006/MCD12Q1");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 /**
  * Visualization to check fluxsits' landcover
@@ -62,6 +62,7 @@ var pkg_vis    = require('users/kongdd/public:pkg_vis.js');
 var points     = require('users/kongdd/public:data/flux_points.js').points;
 var points_buf = points.map(function(f) { return f.buffer(500);});
 
+MCD12Q1_006 = MCD12Q1_006.select(0);
 MCD12Q1_005 = MCD12Q1_005.select(['Land_Cover_Type_1']); //IGBP type
 var lc_colors_005 = ["#aec3d6", "#162103", "#235123", "#399b38", "#38eb38", "#39723b", 
     "#6a2424", "#c3a55f", "#b76124", "#d99125", "#92af1f", "#10104c", 
@@ -158,14 +159,16 @@ function init_maps(){
     mapNames.forEach(function(value, index) {
       var map = maps[index], img;
       // map.setOptions('SATELLITE');
-      if (index === 0) map.add(lg1);
+      if (index === 0) {
+        map.add(lg1);
+        map.add(chart);
+      }
       // if (index === 0) map.add(ui.Panel([chart], null, {position: 'bottom-right', width: '500px', height: '300px'}));
       if (index === 2){
           map.add(lg2);
       }
       if (index === mapNames.length - 1) {
           map.add(lg3);
-          map.add(chart);
       }
     });
     // return maps; // global variable
