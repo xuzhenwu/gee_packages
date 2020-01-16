@@ -34,20 +34,20 @@ var pkg_export = require('users/kongdd/public:pkg_export.js');
  */
 // // examples
 // // https://code.earthengine.google.com/235425776856f67349ffae2e1343f1ad
-// var pkg_export = require('users/kongdd/public:pkg_export.js');
-// var imgcol_land = ee.ImageCollection("MODIS/006/MCD12Q1");
-// var img = imgcol_land.first().select(0);
-// var prj = pkg_export.getProj(imgcol_land);
+// var imgcol = ee.ImageCollection("MODIS/006/MCD12Q1");
+// var pkg_export = require('users/kongdd/public:pkg_export2.js');
+// var img = imgcol.first().select(0);
+// var prj = pkg_export.getProj(imgcol);
 // var options = {
-//     type         : "asset",
-//     range        : [108, 20, 120, 26], //[-180, -60, 180, 90],
-//     cellsize     : 1/240, 
-//     crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
-//     scale        : 463.3127165275, // prj.scale
-//     crs          : 'SR-ORG:6974', // EPSG:4326
-//     folder       : 'projects/pml_evapotranspiration/PML/V2/yearly'
-// }
-// pkg_export.ExportImg(Image, "img_land", img, options);
+//     type: "drive",
+//     range: [95, 30, 120, 42], //[-180, -60, 180, 90],
+//     cellsize: 1 / 240,
+//     // crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
+//     // scale        : 463.3127165275, // prj.scale
+//     crs: 'EPSG:4326', // 'SR-ORG:6974', // EPSG:4326
+//     folder: 'PMLV2'
+// };
+// pkg_export.ExportImg(img, "img_first", options);
 pkg_export.ExportImg = function (Image, task, options, verbose) {
     // range, cellsize, type, folder, crs, crsTransform
     var bounds; // define export region

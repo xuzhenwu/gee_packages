@@ -1,4 +1,5 @@
 // var pkg_vis   = require('users/kongdd/public:pkg_vis.js');
+var pkg_main = require('users/kongdd/public:pkg_main.js');
 
 /**
  * [series description]
@@ -184,55 +185,6 @@ function add_lgds(lgds, map) {
     return lgds;
 }
 
-/**
- * layout function similar as layout in R language
- * 
- * @param nmap How many maps to draw
- * @param {integer} ncol columns 
- * @param {integer} nrow rows
- * @param {boolean} byrow By defaulf byrow = T, maps are arranged in horizontal 
- *                        order; otherwise, in vertical order.
- * @return maps
- */
-function layout(nmap, nrow, ncol, byrow){
-    nmap    = nmap || 2;
-    ncol = ncol || Math.ceil(Math.sqrt(nmap));
-    nrow = nrow || Math.ceil(nmap/ncol);
-    if (byrow === undefined) byrow = true;
-    
-    var maps = [], map;
-    for (var i = 0; i < nmap; i++) maps.push(ui.Map());
-
-    var flow_first  = byrow ? 'horizontal' : 'vertical'; // 'vertical'
-    var flow_second = byrow ? 'vertical'   : 'horizontal';
-    
-    var s = 0, k; //sum
-    var panels_row = [];
-    
-    if (!byrow){
-        // swop value of nrow and ncol
-        var temp = nrow; 
-        nrow = ncol; ncol = temp;
-    }
-
-    for (var i = 0; i < nrow; i++) {
-        var panels_col = [];
-        for (var j = 0; j < ncol; j++) {
-            k = i*ncol + j;
-            if (k >= nmap) break;
-            panels_col.push(maps[k]);
-        }
-        panels_row[i]  = ui.Panel(panels_col, ui.Panel.Layout.Flow(flow_first), { stretch: 'both' });    
-    }
-    
-    var linker = ui.Map.Linker(maps);
-    var Panel  = ui.Panel(panels_row, ui.Panel.Layout.Flow(flow_second), { stretch: 'both' });
-    
-    ui.root.clear();
-    ui.root.add(Panel);
-    return maps;
-}
-
 // Palettes is copied from Jena
 // https://earthengine.googlesource.com/users/gena/packages
 
@@ -387,12 +339,257 @@ function showColors(colorCount) {
 }
 // showPalettes()
 
-exports = {
-    series         : series,
-    grad_legend    : grad_legend,
-    discrete_legend: discrete_legend,
-    layout         : layout,
-    add_lgds       : add_lgds,
-    colors         : Palettes, 
-    showColors     : showColors
+// ------------------------ REVOLUTION -----------------------------------------
+var pkg_vis = {
+    series          : series,
+    grad_legend     : grad_legend,
+    discrete_legend : discrete_legend,
+    add_lgds        : add_lgds,
+    colors          : Palettes,
+    showColors      : showColors
 };
+
+/**
+ * layout function similar as layout in R language
+ * 
+ * @param nmap How many maps to draw
+ * @param {integer} ncol columns 
+ * @param {integer} nrow rows
+ * @param {boolean} byrow By defaulf byrow = T, maps are arranged in horizontal 
+ *                        order; otherwise, in vertical order.
+ * @example
+ * @return maps
+ */
+pkg_vis.layout = function(nmap, nrow, ncol, byrow) {
+    nmap = nmap || 2;
+    ncol = ncol || Math.ceil(Math.sqrt(nmap));
+    nrow = nrow || Math.ceil(nmap / ncol);
+
+    var ngrid = ncol * nrow;
+    if (byrow === undefined) byrow = true;
+
+    var maps = [], map;
+    for (var i = 0; i < ngrid; i++) {
+        if (i < nmap)
+            maps.push(ui.Map());
+        else
+            maps.push([]);
+    }
+
+    var flow_first = byrow ? 'horizontal' : 'vertical'; // 'vertical'
+    var flow_second = byrow ? 'vertical' : 'horizontal';
+
+    var s = 0, k; //sum
+    var panels_row = [];
+
+    if (!byrow) {
+        // swop value of nrow and ncol
+        var temp = nrow;
+        nrow = ncol; ncol = temp;
+    }
+
+    for (var i = 0; i < nrow; i++) {
+        var panels_col = [];
+        for (var j = 0; j < ncol; j++) {
+            k = i * ncol + j;
+            if (k >= nmap) break;
+            panels_col.push(maps[k]);
+        }
+        panels_row[i] = ui.Panel(panels_col, ui.Panel.Layout.Flow(flow_first), { stretch: 'both' });
+    }
+
+    var linker = ui.Map.Linker(maps);
+    var Panel = ui.Panel(panels_row, ui.Panel.Layout.Flow(flow_second), { stretch: 'both' });
+
+    ui.root.clear();
+    ui.root.add(Panel);
+
+    // if (center) maps[0].setCenter(center.lon, center.lat, center.zoom);
+    return maps;
+}
+
+/**
+ * 
+ * @param {*} options 
+ * - nmap
+ * - nrow
+ * - ncol
+ * - byrow
+ * - center
+ * - mapTypeId
+ *      * `roadmap`: displays the default road map view.
+ *      * `satellite`: displays Google Earth satellite images (default).
+ *      * `hybrid`: displays a mixture of normal and satellite views.
+ *      * `terrain`: displays a physical map based on terrain information.
+ * @example
+var options = {
+    // year_begin: 2011,
+    // year_end: 2018,
+    ncol: 3,
+    nrow: 3,
+    // vis: vis_diff,
+    map: {
+        fullscreenControl: false,
+        mapTypeControl: false,
+        zoomControl: false,
+        layerList: false
+    },
+    mapTypeId: "satellite",
+    // center: { lon: 0, lat: 15, zoom: 3 },
+    center: { lon: -60, lat: -5, zoom: 4 }
+};
+layout2(options)
+ */
+pkg_vis.layout2 = function(options) {
+    var nmap = options.nmap;
+    if (!options.nmap) {
+        if (options.nrow && options.nrow) {
+            nmap = options.nrow * options.ncol;
+        } else
+            nmap = 2;
+    }
+    
+    var nrow = options.nrow, ncol = options.ncol;
+    var ns = Math.ceil(Math.sqrt(nmap));
+    if (nrow && !ncol) {
+        ncol = Math.ceil(nmap / nrow); //
+    } else if (!nrow && ncol){
+        nrow = Math.ceil(nmap / ncol);
+    } else if (!nrow && !ncol){
+        ncol = ns;
+        nrow = Math.ceil(nmap / ncol);
+    }
+    // print(options, nrow, ncol, nmap);
+    
+    var byrow = options.byrow === undefined ? true : options.byrow;
+    var center = options.center;
+    var ngrid = ncol * nrow;
+    var mapTypeId = options.mapTypeId || "satellite";
+
+    var maps = [], map;
+    for (var i = 0; i < ngrid; i++) {
+        // if (i < nmap) 
+        map = ui.Map();
+        map.setControlVisibility(options.map);
+        map.setOptions(mapTypeId);
+        maps.push(map);
+    }
+
+    var flow_first = byrow ? 'horizontal' : 'vertical'; // 'vertical'
+    var flow_second = byrow ? 'vertical' : 'horizontal';
+
+    var s = 0, k; //sum
+    var panels_row = [];
+
+    if (!byrow) {
+        // swop value of nrow and ncol
+        var temp = nrow;
+        nrow = ncol; ncol = temp;
+    }
+    
+    for (var i = 0; i < nrow; i++) {
+        var panels_col = [];
+        for (var j = 0; j < ncol; j++) {
+            k = i * ncol + j;
+            // if (k >= nmap) break;
+            // print(k)
+            panels_col.push(maps[k]);
+        }
+        panels_row[i] = ui.Panel(panels_col, ui.Panel.Layout.Flow(flow_first), { stretch: 'both' });
+    }
+    var linker = ui.Map.Linker(maps);
+    var Panel = ui.Panel(panels_row, ui.Panel.Layout.Flow(flow_second), { stretch: 'both' });
+
+    ui.root.clear();
+    ui.root.add(Panel);
+
+    if (center) maps[0].setCenter(center.lon, center.lat, center.zoom);
+    return maps;
+};
+
+/**
+ * show annual imgcol
+ * 
+ * @param {*} maps 
+ * @param {*} imgcol 
+ * @param {*} options 
+ * year_start, year_end, ncol, nrow, vis, center
+ * 
+ * @example
+var options = {
+    map: {
+        fullscreenControl: false,
+        mapTypeControl: false,
+        zoomControl: false,
+        layerList: false
+    }, 
+    center: {lon: 0, lat: 15, zoom: 3}
+};
+var maps = [];
+show_annual_imgcol(maps, imgcol, options)
+ */
+pkg_vis.show_annual_imgcol = function(maps, imgcol, options) {
+    var year_start = options.year_start || 2003;
+    var year_end   = options.year_end || 2018;
+    
+    var vis = options.vis;
+    var reverse = (options.reverse === undefined) ? false : options.reverse;
+    var lab_style = { fontWeight: 'bold', fontSize: 36 };
+    
+    if (!options.ncol && !options.nrow) options.row = 2;
+    // var nrow = options.nrow;
+    // var ncol = options.ncol;
+    // dateList = dateList || ee.List(ImgCol.aggregate_array('system:time_start'))
+    //     .map(function (date) { return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
+
+    var years = pkg_main.seq(year_start, year_end);
+    var nmap  = years.length;
+    // (nrow && ncol) ? nrow * ncol : 
+    if (!options.nmap) options.nmap = nmap;
+    
+    // print(options, years, nmap)
+    maps = pkg_vis.layout2(options);
+    
+    years.forEach(function (year, i) {
+        var map = maps[i];
+        // var year = ee.Number(years.get(i));
+        var filter = ee.Filter.calendarRange(year, year, 'year');
+        var img = imgcol.filter(filter);
+        var title = year.toString();
+        map.widgets().set(3, ui.Label(title, lab_style));
+        map.addLayer(img, vis, title);
+        // map.setControlVisibility(options.map);
+    });
+    
+    if (vis) {
+        var band = imgcol.first().bandNames().get(0).getInfo();
+        var lgd = pkg_vis.grad_legend(vis, band, false); //gC m-2 y-2
+        maps[0].add(lgd);
+    }
+    // maps[0].centerObject(region, 4);
+    // if (center) maps[0].setCenter(center.lon, center.lat, center.zoom);
+};
+
+var debug = false;
+if (debug) {
+    // pkg_vis   = require('users/kongdd/public:pkg_vis.js');
+    var imgcol = ee.ImageCollection('MODIS/055/MOD17A3');
+    var options = {
+        year_start: 2011, 
+        year_end: 2018,
+        // nrow: 2, 
+        ncol: 4,
+        map: {
+            fullscreenControl: false,
+            mapTypeControl: false,
+            zoomControl: false,
+            layerList: false
+        }, 
+        // center: {lon: 0, lat: 15, zoom: 3},
+        center: {lon: -60, lat: -5, zoom: 4} // amazon
+    };
+    var maps = [];
+    pkg_vis.show_annual_imgcol(maps, imgcol, options);
+}
+
+exports = pkg_vis;

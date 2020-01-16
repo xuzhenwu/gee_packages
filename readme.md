@@ -66,7 +66,6 @@ https://code.earthengine.google.com/c35e156e943370c1dd363732a5b59531.
 `layout` function here is just like `layout` in **R** and `subplot` in __MATLAB__ , which is used to produce multiple maps.
 
 
-
 ### 2. Temporal interpolation
 
 Require this package first:

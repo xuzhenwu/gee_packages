@@ -1,28 +1,6 @@
 // var pkg_main   = require('users/kongdd/public:pkg_main.js');
 var global_prop = ['system:id', 'system:time_start', 'system:time_end']; //, 'system:index'
 var points = require('users/kongdd/public:data/flux_points.js').points;
-
-/** base package ------------------------------------------------------------ */
-
-function seq_len(n){
-    return Array(n).join().split(',').map(function(e, i) { return i; });
-}
-
-function seq(from, to, by) {
-    by = by || 1;
-    var res = [];
-    for (var i = from; i <= to; i+=by) {res.push(i);}
-    return res;
-}
-
-function array2dict(arr){
-    var res = {};
-    for (var i = 0; i < arr.length; i++) {
-        res[i] = arr[i];
-    }
-    return res;
-}
-
 /** ------------------------------------------------------------------------- */
 
 var addYearProp = function(img) {
@@ -203,10 +181,7 @@ var qc2bands = function(img, band_qc){
         .copyProperties(img, ['system:time_start']);
 };
 
-exports = {
-    seq             : seq,
-    seq_len         : seq_len,
-    array2dict      : array2dict,
+var pkg_main = {
     global_prop     : global_prop,
     addYearProp     : addYearProp,
     addDateProp     : addDateProp,
@@ -220,3 +195,25 @@ exports = {
     getQABits       : getQABits,
     qc2bands        : qc2bands,
 };
+
+
+pkg_main.seq_len = function(n) {
+    return Array(n).join().split(',').map(function (e, i) { return i; });
+}
+
+pkg_main.seq = function(from, to, by) {
+    by = by || 1;
+    var res = [];
+    for (var i = from; i <= to; i += by) { res.push(i); }
+    return res;
+}
+
+pkg_main.array2dict = function(arr) {
+    var res = {};
+    for (var i = 0; i < arr.length; i++) {
+        res[i] = arr[i];
+    }
+    return res;
+}
+
+exports = pkg_main;
