@@ -48,6 +48,7 @@ var pkg_export = require('users/kongdd/public:pkg_export.js');
 //     folder: 'PMLV2'
 // };
 // pkg_export.ExportImg(img, "img_first", options);
+// pkg_export.ExportImgCol(imgcol, null, options, 'MCD12Q1_06_');
 pkg_export.ExportImg = function (Image, task, options, verbose) {
     // range, cellsize, type, folder, crs, crsTransform
     var bounds; // define export region

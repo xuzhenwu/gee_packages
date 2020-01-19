@@ -1,4 +1,5 @@
 // var pkg_trend = require('users/kongdd/public:Math/pkg_trend.js');
+var pkg_trend = {};
 
 // img should only have dependant band
 function createConstantBand(img) {
@@ -238,7 +239,7 @@ function showdata(ImgCol) {
     ImgCol.filter(filter_date).aside(print);
 }
 
-exports = {
+pkg_trend = {
     showdata            : showdata,
     addSeasonProb       : addSeasonProb,
     add_dn_date         : add_dn_date,
@@ -252,3 +253,16 @@ exports = {
     imgcol_addSeasonProb: imgcol_addSeasonProb,
     imgcol_last         : imgcol_last,
 };
+
+pkg_trend.YearDn_date = function(x, n){
+    x = ee.String(x);
+    n = n || 8;
+    // var year = ee.Number.parse(x.slice(0,4));
+    var i   = ee.Number.parse(x.slice(5,7));
+    var doy = i.subtract(1).multiply(n).add(1);
+    var datestr = x.slice(0, 5).cat(doy);
+    // print(datestr, dn)
+    return ee.Date.parse('Y-D', datestr); 
+}
+// print(pkg_trend.YearDn_date('2010-45'));
+exports = pkg_trend;

@@ -65,6 +65,7 @@ var InnerJoin = function(primary, secondary, filter, join) {
  * @param {[type]} map        For the extension for \code{expression} function
  */
 var ImgColFun = function(primary, secondary, ImgFun, expression, map){
+    ImgFun = ImgFun || Img_absdiff;
     // Map a function to merge the results in the output FeatureCollection.
     var joinedImgCol = ee.Join.saveBest('matches', 'measure')
         .apply(primary, secondary, filterTimeEq);

@@ -216,4 +216,8 @@ pkg_main.array2dict = function(arr) {
     return res;
 }
 
+pkg_main.is_empty_dict = function(x){
+    return Object.keys(x).length === 0
+}
+
 exports = pkg_main;
