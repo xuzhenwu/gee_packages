@@ -184,6 +184,49 @@ function imgcol_addSeasonProb(imgcol){
     return imgcol.map( function(img) { return addSeasonProb(img, false); } );
 }
 
+function imgcol_last(imgcol, n){
+    n = n || 1
+    // ee.Image(imgcol_grace.reduce(ee.Reducer.last())); properties are missing
+    var res = imgcol.toList(n, imgcol.size().subtract(n)); 
+    if (n <= 1) { res = ee.Image(res.get(0)); }
+    return res;
+}
+
+function showdata(ImgCol) {
+    ImgCol.filter(filter_date).aside(print);
+}
+
+pkg_trend = {
+    showdata            : showdata,
+    addSeasonProb       : addSeasonProb,
+    add_dn_date         : add_dn_date,
+    add_dn              : add_dn,
+    dailyImgIters       : dailyImgIters,
+    hour3Todaily        : hour3Todaily, 
+    linearTrend         : linearTrend,
+    imgcol_trend        : imgcol_trend,
+    createConstantBand  : createConstantBand,
+    imgcol_addSeasonProb: imgcol_addSeasonProb,
+    imgcol_last         : imgcol_last,
+};
+
+pkg_trend.YearDn_date = function(x, n){
+    x = ee.String(x);
+    n = n || 8;
+    // var year = ee.Number.parse(x.slice(0,4));
+    var i   = ee.Number.parse(x.slice(5,7));
+    var doy = i.subtract(1).multiply(n).add(1);
+    var datestr = x.slice(0, 5).cat(doy);
+    // print(datestr, dn)
+    return ee.Date.parse('Y-D', datestr); 
+}
+
+pkg_trend.copyProperties = function(img, probs) {
+    probs = probs || ['system:time_start']; // , 'system:id'
+    return return img.copyProperties(img)
+        .copyProperties(img, probs)
+}
+
 /**
  * aggregate_prop
  *
@@ -194,7 +237,7 @@ function imgcol_addSeasonProb(imgcol){
  *                          Just deltaY = y_end - y_begin. (for dataset like GRACE)
  * @return {[type]}         [description]
  */
-function aggregate_prop(ImgCol, prop, reducer, delta){
+pkg_trend.aggregate_prop = function(ImgCol, prop, reducer, delta){
     if (typeof reducer === 'undefined') {reducer = 'mean';}
     if (typeof delta   === 'undefined') {delta   = false;}
 
@@ -219,50 +262,11 @@ function aggregate_prop(ImgCol, prop, reducer, delta){
         var last  = imgcol_last(imgcol);
         
         var res = ee.Algorithms.If(delta, last.subtract(first), imgcol.reduce(reducer));
-        return ee.Image(res)
-            .copyProperties(ee.Image(imgcol.first()), 
-                ['Year', 'YearStr', 'YearMonth', 'Month', 'Season', 'dn', 'system:time_start'])
+        return pkg_trend.copyProperties( ee.Image(res), ee.Image(imgcol.first())
             .copyProperties(img, ['system:id', prop]);
     });
     return ee.ImageCollection(ImgCol_new);
 }
 
-function imgcol_last(imgcol, n){
-    n = n || 1
-    // ee.Image(imgcol_grace.reduce(ee.Reducer.last())); properties are missing
-    var res = imgcol.toList(n, imgcol.size().subtract(n)); 
-    if (n <= 1) { res = ee.Image(res.get(0)); }
-    return res;
-}
-
-function showdata(ImgCol) {
-    ImgCol.filter(filter_date).aside(print);
-}
-
-pkg_trend = {
-    showdata            : showdata,
-    addSeasonProb       : addSeasonProb,
-    add_dn_date         : add_dn_date,
-    add_dn              : add_dn,
-    dailyImgIters       : dailyImgIters,
-    hour3Todaily        : hour3Todaily, 
-    aggregate_prop      : aggregate_prop,
-    linearTrend         : linearTrend,
-    imgcol_trend        : imgcol_trend,
-    createConstantBand  : createConstantBand,
-    imgcol_addSeasonProb: imgcol_addSeasonProb,
-    imgcol_last         : imgcol_last,
-};
-
-pkg_trend.YearDn_date = function(x, n){
-    x = ee.String(x);
-    n = n || 8;
-    // var year = ee.Number.parse(x.slice(0,4));
-    var i   = ee.Number.parse(x.slice(5,7));
-    var doy = i.subtract(1).multiply(n).add(1);
-    var datestr = x.slice(0, 5).cat(doy);
-    // print(datestr, dn)
-    return ee.Date.parse('Y-D', datestr); 
-}
 // print(pkg_trend.YearDn_date('2010-45'));
 exports = pkg_trend;
