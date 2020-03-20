@@ -113,7 +113,9 @@ function array2imgcol(mat, nrow, ncol, bands, dates){
 
 /**
  * multiple bands image convert to image list
- *
+ * 
+ * The bandName should be like that "b2003-01-01".
+ * 
  * @param  {[type]} img      multiple bands image
  * @param  {[type]} bandname the new bandname
  * @return {ee.List}         List of images
@@ -133,7 +135,7 @@ function bandsToImgCol(img, bandname){
             .set('system:id', date.format('yyyy_MM_dd'))
             .set('system:index', date.format('yyyy_MM_dd'));
     });
-    return imgcol_lst;
+    return ee.ImageCollection(imgcol_lst);
 }
 
 

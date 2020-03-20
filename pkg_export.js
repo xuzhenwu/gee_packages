@@ -1,193 +1,4 @@
-/**** Start of imports. If edited, may not auto-convert in the playground. ****/
-var pkg_export = {};
-/***** End of imports. If edited, may not auto-convert in the playground. *****/
-// var pkg_export = require('users/kongdd/public:pkg_export.js');
-
-/**
- * Clip image data of points buffer
- *
- * map function handle for BufferPoints, return a function of img
- *
- * @param  {[type]} points   [description]
- * @param  {[type]} distance [description]
- * @param  {[type]} reducer  [description]
- * @param  {[type]} scale    [description]
- * @param  {[type]} list     [description]
- * @param  {dict} options    other options for reduceRegions, e.g. crs, scale
- * 
- * @return {[type]}          [description]
- * 
- * @examples
- * var export_data = ImgCol.map(mh_BufferPoints(points, 250, reducer,
- * 250));
- */
-pkg_export._Buffer = function(options) {
-    var reducer = options.reducer;
-    var list = typeof reducer === 'string' || reducer.getInfo().type !== 'Reducer.toCollection';
-    
-    // Only Reducer.toCollection is different, which has a features in property
-    if (list){
-        // ee.Reducer.toList() result contains geometry, need to remove it.
-        // features' band properties have already could distinguish each other.
-        return function(img){
-            return img.reduceRegions(options)
-                .map(function(f){ 
-                    return ee.Feature(null).copyProperties(f)
-                        .set('date', ee.Date(img.get('system:time_start')).format('yyyy-MM-dd'));
-                });
-        };
-    }else{
-        return function(img){
-            var data = img.reduceRegions(options)
-                .map(function(f){ return f.get('features'); })
-                .flatten(); 
-            // `ee.Reducer.toCollection` has no feature geometry, and cliped 
-            // data are in FeatureCollection.
-            return data;
-        };
-    }
-};
-
-
-/**
- * Clip ImageCollection by points or polygons
- *
- * @param  {ee.ImageCollection}   ImgCol   The ImageCollection you want to clip
- * @param  {ee.FeatureCollection} features The FeatureCollection used to clip
- * `ImgCol`, can be point or polygon FeatureCollection.
- * @param  {Integer} distance If `distance` > 0, a buffer with the ridius of
- * `distance` will be applied to `features`.
- * @param  {ee.Reducer} reducer e.g. ee.Reducer.toList(), ee.Reducer.mean(), ee.Reducer.first(), ...
- * @param  {Integer} scale    [description]
- * @param  {Boolean} list     [description]
- * @param  {Boolean} save     [description]
- * @param  {String}  file     [description]
- * @param  {Boolean} folder   [description]
- * @return {NULL}          [description]
- */
-pkg_export.clipImgCol = function(ImgCol, features, distance, reducer, file, options){
-    var folder     = options.folder     || "";     // drive forder
-    var fileFormat = options.fileFormat || "csv";  // 'csv' or 'geojson'
-    var save =  (options.save === undefined) ? true : options.save;
-
-    distance   = distance   || 0;
-    reducer    = reducer    || "first";
-
-    if (distance > 0) features = features.map(function(f) { return f.buffer(distance);});
-
-    var image = ee.Image(ImgCol.first()).select(0);
-    var prj   = image.projection(), 
-        scale = prj.nominalScale();
-    var options_reduce = { collection: features, reducer: reducer, crs: prj, scale: scale, tileScale: 16 };
-
-    var export_data = ImgCol.map(pkg_export._Buffer(options_reduce), true).flatten();
-    pkg_export.Export_Table(export_data, save, file, folder, fileFormat);
-};
-
-
-/**
- * [spClipImgCol description]
- *
- * @param  {ImageCollection}   imgcol     The ImageCollection to export.
- * @param  {FeatureCollection} points     The FeatureCollection to clip \code{imgcol}
- * @param  {Double} scale      scale only used to generate buffer distance. 
- * `reduceRegions` use image.projection().nominalScale() as scale.
- * @param  {String} name       [description]
- * @param  {ee.Reducer} reducers 2*1 reducer, the first one is for no buffer 
- * situation; the second is for buffer. If reduces length is 1, then default
- * reducer for buffer is 'toList' when \code{list} = true. 
- * If list = true, while reducer also is `toList`, error will be occured.
- * @param  {boolean} list       If list = false, any null value in feature will 
- * lead to the feature being ignored. If list = true, value in csv will be 
- * like that `[0.8]`.
- * 
- * @param  {[type]} buffer     [description]
- * @param  {[type]} folder     [description]
- * @param  {[type]} fileFormat [description]
- * @return {[type]}            [description]
- */
-// Example:
-// var options = {
-//     reducers : ['first'],  // 1th: non-buffer; 2th: buffer; Only one means no buffer
-//     buffer   : true,      // whether to use buffer
-//     list     : false, 
-//     folder   : '', // drive forder
-//     fileFormat: 'csv'      // 'csv' or 'geojson'
-// };
-// pkg_export.spClipImgCol(imgcol, points, "imgcol_prefix", options)
-pkg_export.spClipImgCol = function(ImgCol, Features, file_prefix, options){
-    file_prefix = file_prefix || "";
-    var reducers   = options.reducers  || ['toList']; // 1th: non-buffer; 2th: buffer
-    var buffer     = options.buffer    || false;      // whether to use buffer
-    var list       = options.list      || false;
-
-    var image  = ee.Image(ImgCol.first()), 
-        prj    = image.select(0).projection();
-    // scale is used to decide buffer `dist` and filename
-    var scale  = options.scale || prj.nominalScale().getInfo(); 
-    
-    var dists  = buffer ? [0, 1, 2] : [0];
-    var file, dist, reducer, reducer_buffer,
-        reducer_nobuffer = reducers[0];
-
-    // reduce for buffer
-    if (reducers.length > 1){
-        reducer_buffer = reducers[1];
-    } else {
-        reducer_buffer  = list ? ee.Reducer.toList() : ee.Reducer.toCollection(ee.Image(ImgCol.first()).bandNames());             
-    }
-  
-    ImgCol = ee.ImageCollection(ImgCol);
-    for(var i = 0; i < dists.length; i++){
-        dist = scale*dists[i];
-        // If distance > 0, buffer will be applied to `features`
-        reducer = dist > 0 ? reducer_buffer : reducer_nobuffer ;  
-     
-        file = file_prefix.concat('_').concat(Math.floor(dist)).concat('m_buffer');//fluxsites_
-        pkg_export.clipImgCol(ImgCol, Features, dist, reducer, file, options); //geojson
-    }  
-};
-
-
-/**
- * Export_table
- *
- * @param  {ImageCollection}   ImgCol the ImageCollection data you want to
- * export.
- * @param  {FeatureCollection} points points used to clip ImgCol
- * @param  {boolean}           save   whether save or not
- * @param  {String}            file   filename
- * @return {FeatureCollection} If save = false, will return FeatureCollection.
- * Otherwise, none will be return. 
- */
-pkg_export.Export_Table = function(export_data, save, file, folder, fileFormat) {
-    save       = save       || false;
-    folder     = folder     || "";
-    fileFormat = fileFormat || "GeoJSON";
-
-    // export params
-    var params = {
-        collection  : export_data, //.flatten(),
-        description : file,
-        folder      : folder,
-        fileFormat  : fileFormat //GeoJSON, CSV
-    };
-
-    // If save, then export to drive, else print in the console
-    if (save) {
-        Export.table.toDrive(params);
-    } else {
-        print(file, export_data);
-    }
-};
-
-
-pkg_export.clip = function(ImgCol, poly){
-  return ImgCol.map(function(img){
-      return img.clip(poly.geometry());
-  });
-};
-
+var pkg_export = require('users/kongdd/public:pkg_buffer.js');
 
 /**
  * Get exported image dimensions
@@ -229,6 +40,175 @@ pkg_export.getProj = function(img){
     };
 };
 
+/**
+ * ExportImg
+ *
+ * @param {ee.Image} Image: The image to export.
+ * @param {String}   task : The file name of exported image
+ * @param {Dictionary} options
+ * - `type`         : export type, one of 'asset', 'cloud' and 'drive'
+ * - `range`        : [lon_min, lat_min, lon_max, lat_max]
+ * - `cellsize`     : cellsize (in the unit of degree), used to calculate dimension.
+ * - `folder`       : The Folder that the export will reside in. If  export type is cloud or asset, folder need to be absolute path.
+ * - `crs`          : CRS to use for the exported image.
+ * - `crsTransform` : Affine transform to use for the exported image. Requires "crs" to be defined.
+ * - `scale`        : (number) Resolution in meters per pixel. Defaults to 1000.
+ * - `dimensions`   : Takes either a single positive integer as the maximum dimension 
+ *    or "WIDTHxHEIGHT" where WIDTH and HEIGHT are each positive integers.
+ * 
+ * @description
+ * "region" and "dimensions" and either "crs_transform" or "scale" may not be specified together.
+ * If `dimension` provided, scale will be ignored.
+ *
+ * # Some options to clip regional data
+ * 1. crs + region + crsTransform    | √
+ * 2. crs + region + dimensions      | √ (resample)
+ * 3. crs + region + scale           | √
+ * 
+ * You must Can't (20191228):
+ * 1. crsTransform and dimensions can't occur in the same time, error.
+ * 2. crs + region  | resampled, unknown cellsize (scale = 1000), out of control (try to fix this situation)
+ * 
+ * @examples
+ * ExportImg(Image, task, range, cellsize, type, folder, crs, crs_trans)
+ */
+// // examples
+// // https://code.earthengine.google.com/235425776856f67349ffae2e1343f1ad
+// var imgcol = ee.ImageCollection("MODIS/006/MCD12Q1");
+// var pkg_export = require('users/kongdd/public:pkg_export2.js');
+// var img = imgcol.first().select(0);
+// var prj = pkg_export.getProj(imgcol);
+// var options = {
+//     type: "drive",
+//     range: [95, 30, 120, 42], //[-180, -60, 180, 90],
+//     cellsize: 1 / 240,
+//     // crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
+//     // scale        : 463.3127165275, // prj.scale
+//     crs: 'EPSG:4326', // 'SR-ORG:6974', // EPSG:4326
+//     folder: 'PMLV2'
+// };
+// pkg_export.ExportImg(img, "img_first", options);
+// pkg_export.ExportImgCol(imgcol, null, options, 'MCD12Q1_06_');
+pkg_export.ExportImg = function (Image, task, options, verbose) {
+    // range, cellsize, type, folder, crs, crsTransform
+    var bounds; // define export region
+
+    if (verbose === undefined) verbose = false;
+    var range        = options.range || [-180, -60, 180, 90];
+    var cellsize     = options.cellsize; //pkg_export.getProj(Image)['crsTransform'][0];
+    var type         = options.type || 'drive';
+    var folder       = options.folder || "";
+    var crs          = options.crs || 'EPSG:4326'; //'SR-ORG:6974';
+    var crsTransform = options.crsTransform;
+    var dimensions   = options.dimensions || pkg_export.getDimensions(range, cellsize);
+    var scale        = options.scale;
+
+    function check_slash(x) {
+        if (x !== "" && x.substring(x.length - 1) !== "/") x = x.concat("/");
+        return x;
+    }
+    folder = check_slash(folder);
+    bounds = ee.Geometry.Rectangle(range, 'EPSG:4326', false); //pkg_export.get_bound(range);
+
+    if (crsTransform) {
+        dimensions = undefined;
+        scale = undefined;
+    } else {
+        // If dimensions and crsTransform don't exist in the sometime，scale works
+        if (!dimensions && !scale) scale = pkg_export.getProj(Image).scale;
+        // print("debug", scale, dimensions)
+    }
+    if (dimensions) scale = undefined;
+
+    // var crsTransform  = [cellsize, 0, -180, 0, -cellsize, 90]; //left-top
+    var params = {
+        image        : Image,
+        description  : task,
+        crs          : crs,
+        crsTransform : crsTransform,
+        region       : bounds,
+        dimensions   : dimensions,
+        scale        : scale,
+        maxPixels    : 1e13
+    };
+
+    switch (type) {
+        case 'asset':
+            params.assetId = folder.concat(task); //projects/pml_evapotranspiration/;
+            Export.image.toAsset(params);
+            break;
+        case 'cloud':
+            params.bucket = options.bucket;
+            params.fileNamePrefix = folder.concat(task);
+            params.skipEmptyTiles = true;
+            Export.image.toCloudStorage(params);
+            break;
+        case 'drive':
+            params.folder = folder;
+            params.skipEmptyTiles = true;
+            Export.image.toDrive(params);
+            break;
+    }
+    if (verbose) print(options, params);
+};
+
+
+/**
+ * Batch export GEE ImageCollection
+ *
+ * @param {ee.ImageCollection} ImgCol    The ImageCollection to export.
+ * @param {array.<string>}     dateList  Corresponding date string list of ImgCol
+ * @param {options} 
+ * - `range`   : [lon_min, lat_min, lon_max, lat_max]
+ * - `cellsize`: cellsize (in the unit of degree), used to calculate dimension.
+ * - `type`    : export type, one of 'asset', 'cloud' and 'drive'
+ * - `folder`  : The Folder that the export will reside in. If export type is cloud 
+ * or asset, folder need to be absolute path.
+ * - `crs`     : CRS to use for the exported image.
+ * - `crsTransform`: Affine transform to use for the exported image. Requires "crs" to be defined.
+ * - `dimensions`  : If specified, the calculated dimension from `cellsize` and 
+ * `range` will be abandoned.
+ * 
+ * @param {String} prefix The prefix of the exported file name.
+ */
+pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
+{    
+    // Major update 
+    /** 
+     * If dateList was undefined, this function is low efficient.
+     * ee.ImageCollection.toList() is quite slow, often lead to time out.
+     */
+    dateList = dateList || ee.List(ImgCol.aggregate_array('system:time_start'))
+        .map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
+
+    // cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
+    // type   = type   || 'drive';
+    // crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
+    prefix = prefix || '';
+
+    var n = dateList.length;
+    
+    for (var i = 0; i < n; i++) {
+        // var img  = ee.Image(colList.get(i));
+        var date = dateList[i];
+        var img  = ee.Image(ImgCol.filterDate(date).first()); 
+        // var task = img.get('system:id');//.getInfo();
+        var task = prefix + date;
+        print(task);
+        pkg_export.ExportImg(img, task, options); 
+    }
+};
+
+pkg_export.updateDict = function(dict_org, dict_new) {
+    var key, keys = Object.keys(dict_new);
+    for (var i = 0; i < keys.length; i++) {
+        key = keys[i];
+        dict_org[key] = dict_new[key];
+    }
+    // print(dict_org);
+    return (dict_org);
+};
+
 pkg_export.export_shp = function(features, file, folder, fileFormat){
     folder     = folder || "";
     fileFormat = fileFormat || 'shp';
@@ -244,6 +224,42 @@ pkg_export.export_shp = function(features, file, folder, fileFormat){
     });
 };
 
+
+/**
+ * Export_table
+ *
+ * @param  {ImageCollection}   ImgCol the ImageCollection data you want to
+ * export.
+ * @param  {FeatureCollection} points points used to clip ImgCol
+ * @param  {boolean}           save   whether save or not
+ * @param  {String}            file   filename
+ * @return {FeatureCollection} If save = false, will return FeatureCollection.
+ * Otherwise, none will be return. 
+ */
+pkg_export.Export_Table = function(export_data, save, file, folder, fileFormat) {
+    save       = save       || false;
+    folder     = folder     || "";
+    fileFormat = fileFormat || "GeoJSON";
+
+    // export params
+    var params = {
+        collection  : export_data, //.flatten(),
+        description : file,
+        folder      : folder,
+        fileFormat  : fileFormat //GeoJSON, CSV
+    };
+
+    // If save, then export to drive, else print in the console
+    if (save) {
+        Export.table.toDrive(params);
+    } else {
+        print(file, export_data);
+    }
+};
+
+pkg_export.get_bound = function (range) {
+    return ee.Geometry.Rectangle(range, 'EPSG:4326', false);
+}
 
 pkg_export.range_global = [-180, -60, 180, 90]; // [long_min, lat_min, long_max, lat_max]
 pkg_export.range_TP     = [73, 25, 105, 40];    // Tibetan Plateau
