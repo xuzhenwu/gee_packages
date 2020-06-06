@@ -55,7 +55,8 @@ function series(ImgCol, vis, name, region, label, scale) {
 }
 
 /** add gradient legend in GEE */
-function grad_legend(viz, title, IsPlot, position) {
+function grad_legend(viz, title, IsPlot, position, fontSize) {
+    fontSize = fontSize || "20px";
     title    = title || "";
     position = position || "bottom-left";
     if (IsPlot === undefined) IsPlot = true;
@@ -69,7 +70,7 @@ function grad_legend(viz, title, IsPlot, position) {
     var legendTitle = ui.Label({
         value: title,
         style: {
-            fontWeight: 'bold', fontSize: '12px',
+            fontWeight: 'bold', fontSize: fontSize,
             margin: '0 0 0 0', padding: '0'
         }
     });
@@ -82,7 +83,7 @@ function grad_legend(viz, title, IsPlot, position) {
 
     var panel_max = ui.Panel({
         widgets: [ui.Label(viz.max)],
-        style: { fontSize: '14px', margin: '0 0 0px 0', padding: '0 0 0 6px' }
+        style: { fontSize: fontSize, margin: '0 0 0px 0', padding: '0 0 0 6px' }
     });
     legend.add(panel_max);
     // create thumbnail from the image
@@ -98,7 +99,7 @@ function grad_legend(viz, title, IsPlot, position) {
     // create text on bottom of legend
     var panel_min = ui.Panel({
         widgets: [ui.Label(viz.min)],
-        style: { fontSize: '14px', margin: '0 0 0px 0', padding: '0 0 0 6px' }
+        style: { fontSize: fontSize, margin: '0 0 0px 0', padding: '0 0 0 6px' }
     });
     legend.add(panel_min);
     if (IsPlot){
@@ -108,7 +109,8 @@ function grad_legend(viz, title, IsPlot, position) {
     }
 }
 
-function discrete_legend(names, palette, title, IsPlot, position) {
+function discrete_legend(names, palette, title, IsPlot, position, fontSize) {
+    fontSize = fontSize || "20px";
     title    = title || "";
     position = position || "bottom-left";
     if (IsPlot === undefined) IsPlot = true;
@@ -123,7 +125,7 @@ function discrete_legend(names, palette, title, IsPlot, position) {
     var legendTitle = ui.Label({
         value: title,
         style: {
-            fontWeight: 'bold', fontSize: '14px',
+            fontWeight: 'bold', fontSize: fontSize,
             margin: '0 0 2px 0', padding: '0'
         }
     });
@@ -139,11 +141,11 @@ function discrete_legend(names, palette, title, IsPlot, position) {
             style: {
                 backgroundColor: color,
                 // Use padding to give the box height and width.
-                margin: '0 0 1px 0', padding: '8px'
+                margin: '0 0 1px 0', padding: '12px'
             }
         });
         // Create the label filled with the description text.
-        var description = ui.Label({ value: name, style: { margin: '0 0 1px 6px' } });
+        var description = ui.Label({ value: name, style: { fontSize: fontSize, margin: '0 0 1px 6px' } });
         return ui.Panel({
             widgets: [colorBox, description],
             layout: ui.Panel.Layout.Flow('horizontal')

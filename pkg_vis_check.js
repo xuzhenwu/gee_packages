@@ -178,7 +178,9 @@ function maps_update(date){
     if (date === undefined){
         date = imgcols[0].aggregate_first('system:time_start');
     }
+    
     date        = ee.Date(date);
+    
     var datestr = date.format('yyyy-MM-dd').getInfo();
     var year    = date.get('year');
     

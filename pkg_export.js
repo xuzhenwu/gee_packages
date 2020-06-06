@@ -1,4 +1,5 @@
-var pkg_export = require('users/kongdd/public:pkg_buffer.js');
+var pkg_export = {};
+// var pkg_export = require('users/kongdd/public:pkg_export.js');
 
 /**
  * Get exported image dimensions
@@ -103,11 +104,13 @@ pkg_export.ExportImg = function (Image, task, options, verbose) {
     var dimensions   = options.dimensions || pkg_export.getDimensions(range, cellsize);
     var scale        = options.scale;
 
-    function check_slash(x) {
-        if (x !== "" && x.substring(x.length - 1) !== "/") x = x.concat("/");
+    function rm_slash(x) {
+        if (x !== "" && x.substring(x.length - 1) === "/") 
+            x = x.substring(0, x.length - 1);
         return x;
     }
-    folder = check_slash(folder);
+    folder = rm_slash(folder);
+    
     bounds = ee.Geometry.Rectangle(range, 'EPSG:4326', false); //pkg_export.get_bound(range);
 
     if (crsTransform) {
@@ -131,15 +134,16 @@ pkg_export.ExportImg = function (Image, task, options, verbose) {
         scale        : scale,
         maxPixels    : 1e13
     };
-
+    
+    task = folder.concat('/').concat(task);
     switch (type) {
         case 'asset':
-            params.assetId = folder.concat(task); //projects/pml_evapotranspiration/;
+            params.assetId = task; //projects/pml_evapotranspiration/;
             Export.image.toAsset(params);
             break;
         case 'cloud':
             params.bucket = options.bucket;
-            params.fileNamePrefix = folder.concat(task);
+            params.fileNamePrefix = task;
             params.skipEmptyTiles = true;
             Export.image.toCloudStorage(params);
             break;
@@ -186,17 +190,18 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
     // crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
     prefix = prefix || '';
 
-    var n = dateList.length;
-    
-    for (var i = 0; i < n; i++) {
-        // var img  = ee.Image(colList.get(i));
-        var date = dateList[i];
-        var img  = ee.Image(ImgCol.filterDate(date).first()); 
-        // var task = img.get('system:id');//.getInfo();
-        var task = prefix + date;
-        print(task);
-        pkg_export.ExportImg(img, task, options); 
-    }
+    // dateList.evaluate(function(dateList) {
+        var n = dateList.length;
+        for (var i = 0; i < n; i++) {
+            // var img  = ee.Image(colList.get(i));
+            var date = dateList[i];
+            var img  = ee.Image(ImgCol.filterDate(date).first()); 
+            // var task = img.get('system:id');//.getInfo();
+            var task = prefix + date;
+            print(task);
+            pkg_export.ExportImg(img, task, options); 
+        }
+    // });
 };
 
 pkg_export.updateDict = function(dict_org, dict_new) {

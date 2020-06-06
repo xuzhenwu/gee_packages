@@ -80,6 +80,8 @@ function addSeasonProb(img, pheno){
     var year  = date.get('year');
     var season;
     // year.subtract(1).multiply(10).add(4)
+    var ingrow = ee.Algorithms.If(month.gte(4).and(month.lte(10)), "true", "false");
+
     if (pheno){
         /** 4-10 as growing season */
         season = ee.Algorithms.If(month.lte(3), ee.String(year.subtract(1)).cat("_winter"), season);
@@ -97,8 +99,10 @@ function addSeasonProb(img, pheno){
     }
     
     return img.set('Season', season)
+        .set('ingrow', ingrow)
+        .set('Year-ingrow', year.format().cat('-').cat(ingrow))
         .set('Year', year.format())
-        .set('Month', month.format())
+        .set('Month', month.format("%02d"))
         .set('YearMonth', date.format('YYYY-MM')); //seasons.get(month.subtract(1))
 }
 

@@ -154,5 +154,37 @@ pkg_buffer.clip = function(ImgCol, poly){
   });
 };
 
+/**
+ * Export_table
+ *
+ * @param  {ImageCollection}   ImgCol the ImageCollection data you want to
+ * export.
+ * @param  {FeatureCollection} points points used to clip ImgCol
+ * @param  {boolean}           save   whether save or not
+ * @param  {String}            file   filename
+ * @return {FeatureCollection} If save = false, will return FeatureCollection.
+ * Otherwise, none will be return. 
+ */
+pkg_buffer.Export_Table = function (export_data, save, file, folder, fileFormat) {
+    save = save || false;
+    folder = folder || "";
+    fileFormat = fileFormat || "GeoJSON";
+
+    // export params
+    var params = {
+        collection: export_data, //.flatten(),
+        description: file,
+        folder: folder,
+        fileFormat: fileFormat //GeoJSON, CSV
+    };
+
+    // If save, then export to drive, else print in the console
+    if (save) {
+        Export.table.toDrive(params);
+    } else {
+        print(file, export_data);
+    }
+};
+
 exports = pkg_buffer;
 // print('pkg_buffer', pkg_buffer)

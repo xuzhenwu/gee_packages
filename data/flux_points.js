@@ -48,3 +48,14 @@ exports = {
     points: points,
     pointsRemove_fun: pointsRemove_fun
 };
+
+
+function rename_systemId_fs(fs) {
+    // reduce the export data size, only one band left
+    fs = fs.select(['site']); 
+    fs = fs.toList(fs.size()).map(function(f){
+        f = ee.Feature(f);
+        return f.set('system:index', f.get('site'));
+    });
+    return ee.FeatureCollection(fs);
+}
