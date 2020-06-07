@@ -13,7 +13,7 @@ var prj = pkg_export.getProj(Emiss_d8); // prj_emiss.prj
 var cellsize = 1/120;
 var options = {
     type: "asset",
-    range: [-180, -60, 180, 90 - cellsize],
+    range: [-180, -60, 180, 89],
     // cellsize: 1 / 20,
     crsTransform: prj.crsTransform,
     // scale        : 463.3127165275, // prj.scale
