@@ -55,33 +55,57 @@ pkg_buffer._Buffer = function(options) {
  * @param  {ee.ImageCollection}   ImgCol   The ImageCollection you want to clip
  * @param  {ee.FeatureCollection} features The FeatureCollection used to clip
  * `ImgCol`, can be point or polygon FeatureCollection.
- * @param  {Integer} distance If `distance` > 0, a buffer with the ridius of
+ * @param  {Integer}    distance If `distance` > 0, a buffer with the ridius of
  * `distance` will be applied to `features`.
  * @param  {ee.Reducer} reducer e.g. ee.Reducer.toList(), ee.Reducer.mean(), ee.Reducer.first(), ...
- * @param  {Integer} scale    [description]
- * @param  {Boolean} list     [description]
- * @param  {Boolean} save     [description]
- * @param  {String}  file     [description]
- * @param  {Boolean} folder   [description]
+ * @param  {String}     file     [description]
+ * @param  {dict}       options    other options:
+ * - `scale`: the scale of reduceRegion, default is same as that of ImgCol
+ * - `save`: boolean, save or print result
+ * - `folder`: the folder of outfile
+ * - `fileFormat`: csv or json
+ * - `nchunk`: integer, for huge task, split features into nchunk.
+ * 
  * @return {NULL}          [description]
  */
 pkg_buffer.clipImgCol = function(ImgCol, features, distance, reducer, file, options){
     var folder     = options.folder     || "";     // drive forder
     var fileFormat = options.fileFormat || "csv";  // 'csv' or 'geojson'
     var save =  (options.save === undefined) ? true : options.save;
-
+    
     distance   = distance   || 0;
     reducer    = reducer    || "first";
 
     if (distance > 0) features = features.map(function(f) { return f.buffer(distance);});
 
     var image = ee.Image(ImgCol.first()).select(0);
-    var prj   = image.projection(), 
-        scale = prj.nominalScale();
+    var prj   = image.projection();
+    var scale = options.scale || prj.nominalScale();
     var options_reduce = { collection: features, reducer: reducer, crs: prj, scale: scale, tileScale: 16 };
 
-    var export_data = ImgCol.map(pkg_buffer._Buffer(options_reduce), true).flatten();
-    pkg_buffer.Export_Table(export_data, save, file, folder, fileFormat);
+    if (!options.nchunk) {
+        var export_data = ImgCol.map(pkg_buffer._Buffer(options_reduce), true).flatten();
+        pkg_buffer.Export_Table(export_data, save, file, folder, fileFormat);    
+    } else {
+        var nchunk = options.nchunk;
+        var n  = features.size();
+        var fs = features.toList(n);
+        var chunksize = n.divide(nchunk).ceil();
+
+        for (var i = 1; i <= nchunk; i++) {
+            var i_begin = chunksize.multiply(i - 1);
+            var i_end   = chunksize.multiply(i);
+            
+            var fs_i = ee.FeatureCollection(fs.slice(i_begin, i_end));
+            var task = file.concat("_").concat(i);
+
+            options_reduce.collection = fs_i;
+            var export_data = ImgCol.map(pkg_buffer._Buffer(options_reduce), true).flatten();
+            pkg_buffer.Export_Table(export_data, save, task, folder, fileFormat);    
+            // print(task)
+            // print(fs_i.size());
+        }
+    }
 };
 
 
