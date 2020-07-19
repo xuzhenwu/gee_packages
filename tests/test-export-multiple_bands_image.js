@@ -16,34 +16,42 @@ var prj = pkg_export.getProj(imgcol);
 // [70, 15, 140, 55]
 var options = {
     type: "drive",
-    range: [73, 25, 105, 40], //[-180, -60, 180, 90],
-    cellsize: 1 / 10,
+    range: [-180, -60, 180, 90],
+    // range: [73, 25, 105, 40], //[-180, -60, 180, 90],
+    cellsize: 1 / 240,
+    ncol:3,
+    verbose:true,
     // crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
     // scale        : 463.3127165275, // prj.scale
     crs: 'EPSG:4326', // 'SR-ORG:6974', // EPSG:4326
-    folder: 'PMLV2'
+    folder: 'MODIS'
 };
 
 // 1. multiple bands img
 // var task = "MOD17A2H_GPP_010deg_TP_";
 
-
 // 1. MOD15A2H
 var imgcol = ee.ImageCollection("MODIS/006/MOD15A2H")
-    .filterDate('2000-01-01', '2019-12-31').select('Lai_500m');
-print(imgcol.limit(3), 'MOD15A2H');
+    .filterDate('2000-01-01', '2019-12-31')
+    .select(['Lai_500m']);
+    //FparExtra_QC
 var task = "MOD15A2H-raw-LAI_010deg_TP";
 
+var year = 2018;
+imgcol = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
+var task = "MOD15A2H-raw-LAI_240deg_global".concat('_').concat(year);
+
+print(imgcol.limit(3), 'MOD15A2H');
 // 2. MCD15A2H
-var imgcol = ee.ImageCollection("MODIS/006/MCD15A3H")
-    .filterDate('2000-01-01', '2019-12-31').select('Lai');
-print(imgcol.limit(3), 'MCD15A2H');
-var task = "MCD15A2H-raw-LAI_010deg_TP";
+// var imgcol = ee.ImageCollection("MODIS/006/MCD15A3H")
+//     .filterDate('2000-01-01', '2019-12-31').select('Lai');
+// print(imgcol.limit(3), 'MCD15A2H');
+// var task = "MCD15A2H-raw-LAI_010deg_TP";
 
 // var task = "smoothed_LAI_010deg_TP_";
 // var imgcol = require('users/kongdd/gee_PML:src/mosaic_LAI.js').smoothed;
 var img = imgcol.toBands();
-pkg_export.ExportImg(img, task, options);
+pkg_export.ExportImg2(img, task, options);
 
 // export bandnames
 var bandnames = img.bandNames();
