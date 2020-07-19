@@ -33,20 +33,20 @@ var options = {
 // 1. MOD15A2H
 var imgcol = ee.ImageCollection("MODIS/006/MOD15A2H")
     .filterDate('2000-01-01', '2019-12-31')
-    .select(['Lai_500m']);
+    .select(['Lai_500m', 'FparExtra_QC']);
     //FparExtra_QC
-var task = "MOD15A2H-raw-LAI_010deg_TP";
-
+// var task = "MOD15A2H-raw-LAI_010deg_TP";
+var prefix = "MOD15A2H-raw-LAI_240deg_global";
 
 for(var year = 2016; year <= 2019; year ++) {
-  if (year == 2018) next();
+  if (year == 2018) continue;
   
-  print(year)
-  // imgcol = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
-  // var task = "MOD15A2H-raw-LAI_240deg_global".concat('_').concat(year);
+  // print(year)
+  imgcol = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
+  var task = prefix.concat('_').concat(year);
   
-  // var img = imgcol.toBands();
-  // pkg_export.ExportImg2(img, task, options);
+  var img = imgcol.toBands();
+  pkg_export.ExportImg2(img, task, options);
 }
 
 
