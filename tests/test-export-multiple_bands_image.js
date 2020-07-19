@@ -42,10 +42,10 @@ for(var year = 2016; year <= 2019; year ++) {
   if (year == 2018) continue;
   
   // print(year)
-  imgcol = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
+  var imgcoli = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
   var task = prefix.concat('_').concat(year);
   
-  var img = imgcol.toBands();
+  var img = imgcoli.toBands();
   pkg_export.ExportImg2(img, task, options);
 }
 
