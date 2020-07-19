@@ -20,7 +20,7 @@ var options = {
     // range: [73, 25, 105, 40], //[-180, -60, 180, 90],
     cellsize: 1 / 240,
     ncol:3,
-    verbose:true,
+    // verbose:true,
     // crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
     // scale        : 463.3127165275, // prj.scale
     crs: 'EPSG:4326', // 'SR-ORG:6974', // EPSG:4326
