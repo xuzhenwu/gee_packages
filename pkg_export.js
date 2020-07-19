@@ -56,6 +56,7 @@ pkg_export.getProj = function(img){
  * - `scale`        : (number) Resolution in meters per pixel. Defaults to 1000.
  * - `dimensions`   : Takes either a single positive integer as the maximum dimension 
  *    or "WIDTHxHEIGHT" where WIDTH and HEIGHT are each positive integers.
+ * - `verbose`      : boolean
  * 
  * @description
  * "region" and "dimensions" and either "crs_transform" or "scale" may not be specified together.
@@ -90,10 +91,11 @@ pkg_export.getProj = function(img){
 // };
 // pkg_export.ExportImg(img, "img_first", options);
 // pkg_export.ExportImgCol(imgcol, null, options, 'MCD12Q1_06_');
-pkg_export.ExportImg = function (Image, task, options, verbose) {
+pkg_export.ExportImg = function (Image, task, options) {
     // range, cellsize, type, folder, crs, crsTransform
     var bounds; // define export region
 
+    var verbose = options.verbose;
     if (verbose === undefined) verbose = false;
     var range        = options.range || [-180, -60, 180, 90];
     var cellsize     = options.cellsize; //pkg_export.getProj(Image)['crsTransform'][0];
@@ -203,6 +205,71 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
         }
     // });
 };
+
+// var pkg_debug = require('users/kongdd/public:debug.js');
+
+/** 
+ * split exporting range into multiple piece
+ *
+ * @param {[type]} range  [description]
+ * @param {[type]} nx     [description]
+ * @param {[type]} ny     [description]
+ * @param {[type]} prefix [description]
+ *
+ * @examples
+ * var range  = [-180, -60, 180, 90];
+ * var ranges = SplitGrids(range, 2, 2, "prefix_"); 
+ * print(ranges);
+ * ranges.forEach(function(dict, ind){
+ *     pkg_export.ExportImg(img_out, dict.range, dict.file, 1/240, 'drive', "");
+ * });
+ */
+pkg_export.SplitRange2Grids = function (range, ny, nx, prefix) {
+    nx = nx || 4;
+    ny = ny || nx;
+    prefix = prefix || "";
+
+    var lat_range = range[3] - range[1],
+        lon_range = range[2] - range[0],
+        dy = lat_range / ny,
+        dx = lon_range / nx;
+    // print(lon_range, lat_range, dx, dy);
+
+    var file, range_ij, lat_min, lat_max, lon_min, lon_max;
+    var tasks = [],
+        task;
+    for (var i = 0; i < nx; i++) {
+        lon_min = range[0] + i * dx;
+        lon_max = lon_min + dx;
+        for (var j = 0; j < ny; j++) {
+            lat_min = range[1] + j * dy;
+            lat_max = lat_min + dy;
+
+            range_ij = [lon_min, lat_min, lon_max, lat_max];
+            file = prefix + '_' + i.toString() + '_' + j.toString();
+            tasks.push({ range: range_ij, file: file });
+            // print(file, range_ij);
+        }
+    }
+    return tasks;
+}
+
+pkg_export.ExportImg2 = function (Image, task, options) {
+    var nrow = options.nrow || 5;
+    var ncol = options.ncol || 2;
+
+    var ranges = pkg_export.SplitRange2Grids(options.range, nrow, ncol, task);
+    if (options.verbose) {
+        print(ranges);
+        options.verbose = false;
+    }
+    ranges.forEach(function (dict, ind) {
+        options.range = dict.range;
+        // if (options.verbose) print(dict.file, options.range)
+        pkg_export.ExportImg(Image, dict.file, options);
+    });
+} 
+
 
 pkg_export.updateDict = function(dict_org, dict_new) {
     var key, keys = Object.keys(dict_new);
