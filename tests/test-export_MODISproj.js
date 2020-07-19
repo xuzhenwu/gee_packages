@@ -12,15 +12,17 @@ var prj = pkg_export.getProj(Emiss_d8); // prj_emiss.prj
 
 var cellsize = 1/120;
 var options = {
-    type: "asset",
-    range: [-180, -60, 180, 89],
+    // type: "asset",
+    range: [-180, -60, 180, 90],
     // cellsize: 1 / 20,
-    crsTransform: prj.crsTransform,
+    // crsTransform: prj.crsTransform,
     // scale        : 463.3127165275, // prj.scale
     crs: 'SR-ORG:6974', // EPSG:4326
-    folder: 'users/cuijian426'
+    folder : "MODIS", 
+    verbose: true
+    // folder: 'users/cuijian426'
 };
 
 var img = Emiss_d8.first().select(0);
 var task = "test-MODISproj2";
-pkg_export.ExportImg(img, task, options);
+pkg_export.ExportImg2(img, task, options);
