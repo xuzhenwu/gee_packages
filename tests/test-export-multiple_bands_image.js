@@ -38,7 +38,7 @@ var imgcol = ee.ImageCollection("MODIS/006/MOD15A2H")
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
 var prefix = "MOD15A2H-raw-LAI_240deg_global";
 
-for(var year = 2002; year <= 2010; year ++) {
+for(var year = 2002; year <= 2015; year ++) {
   if (year == 2018) continue;
   
   // print(year)
