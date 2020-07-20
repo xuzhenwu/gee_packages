@@ -38,7 +38,7 @@ var imgcol = ee.ImageCollection("MODIS/006/MOD15A2H")
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
 var prefix = "MOD15A2H-raw-LAI_240deg_global";
 
-for(var year = 2016; year <= 2019; year ++) {
+for(var year = 2000; year <= 2001; year ++) {
   if (year == 2018) continue;
   
   // print(year)
@@ -47,6 +47,7 @@ for(var year = 2016; year <= 2019; year ++) {
   
   var img = imgcoli.toBands();
   pkg_export.ExportImg2(img, task, options);
+  print(options)
 }
 
 
