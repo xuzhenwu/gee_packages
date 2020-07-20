@@ -47,7 +47,7 @@ for(var year = 2002; year <= 2015; year ++) {
   
   var img = imgcoli.toBands();
   pkg_export.ExportImg2(img, task, options);
-  print(options)
+  // print(options)
 }
 
 
