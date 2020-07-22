@@ -3,10 +3,9 @@ var imgcol_gpp = ee.ImageCollection("MODIS/006/MOD17A2H"),
     imgcol_LAI = ee.ImageCollection("MODIS/006/MOD15A2H");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 // https://code.earthengine.google.com/235425776856f67349ffae2e1343f1ad
-var imgcol = ee.ImageCollection("MODIS/006/MCD15A3H");
-imgcol = imgcol;
-
-imgcol = imgcol_gpp.select(0);
+// var imgcol = ee.ImageCollection("MODIS/006/MCD15A3H");
+// imgcol = imgcol;
+var imgcol = imgcol_gpp.select(0);
 print(imgcol.size());
 
 var pkg_export = require('users/kongdd/public:pkg_export.js');
@@ -31,24 +30,29 @@ var options = {
 // var task = "MOD17A2H_GPP_010deg_TP_";
 
 // 1. MOD15A2H
-var imgcol = ee.ImageCollection("MODIS/006/MOD15A2H")
+var imgcol_lai = ee.ImageCollection("MODIS/006/MOD15A2H")
     .filterDate('2000-01-01', '2019-12-31')
     .select(['Lai_500m', 'FparExtra_QC']);
     //FparExtra_QC
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
-var prefix = "MOD15A2H-raw-LAI_240deg_global";
+var prefix_lai = "MOD15A2H-raw-LAI_240deg_global";
+main_export(imgcol_lai, prefix_lai, options, 2008, 2008);
 
-for(var year = 2002; year <= 2015; year ++) {
-  if (year == 2018) continue;
-  
-  // print(year)
-  var imgcoli = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
-  var task = prefix.concat('_').concat(year);
-  
-  var img = imgcoli.toBands();
-  pkg_export.ExportImg2(img, task, options);
-  // print(options)
+
+function main_export(imgcol, prefix, options, year_begin, year_end){
+  for(var year = year_begin; year <= year_end; year ++) {
+    if (year == 2018) continue;
+    
+    // print(year)
+    var imgcoli = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
+    var task = prefix.concat('_').concat(year);
+    
+    var img = imgcoli.toBands();
+    pkg_export.ExportImg2(img, task, options);
+    // print(options)
+  }
 }
+
 
 
 // print(imgcol.limit(3), 'MOD15A2H');
