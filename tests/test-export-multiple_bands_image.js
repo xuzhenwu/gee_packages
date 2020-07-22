@@ -47,7 +47,16 @@ var imgcol_emiss = imgcol_Emiss
     //FparExtra_QC
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
 var prefix_emiss = "MOD11A2-raw-Emiss_120deg_global";
-main_export(imgcol_emiss, prefix_emiss, options, 2000, 2019);
+// main_export(imgcol_emiss, prefix_emiss, options, 2000, 2019);
+
+// 3. Combined Albedo
+var imgcol = imgcol_Albedo
+    .filterDate('2000-01-01', '2019-12-31');
+    // .select(['Lai_500m', 'FparExtra_QC']);
+    //FparExtra_QC
+// var task = "MOD15A2H-raw-LAI_010deg_TP";
+var prefix = "MCD43A3-raw-Albedo_240deg_global";
+main_export(imgcol, prefix, options, 2003, 2019);
 
 
 function main_export(imgcol, prefix, options, year_begin, year_end){
