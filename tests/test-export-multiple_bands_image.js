@@ -41,7 +41,7 @@ main_export(imgcol_lai, prefix_lai, options, 2008, 2008);
 
 function main_export(imgcol, prefix, options, year_begin, year_end){
   for(var year = year_begin; year <= year_end; year ++) {
-    if (year == 2018) continue;
+    // if (year == 2018) continue;
     
     // print(year)
     var imgcoli = imgcol.filter(ee.Filter.calendarRange(year, year, 'year'));
