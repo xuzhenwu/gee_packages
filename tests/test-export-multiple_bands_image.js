@@ -25,7 +25,7 @@ var options = {
     // crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
     // scale        : 463.3127165275, // prj.scale
     crs: 'EPSG:4326', // 'SR-ORG:6974', // EPSG:4326
-    folder: 'MODIS_Emiss'
+    folder: 'MODIS_Albedo'
 };
 
 // 1. multiple bands img
@@ -51,7 +51,8 @@ var prefix_emiss = "MOD11A2-raw-Emiss_120deg_global";
 
 // 3. Combined Albedo
 var imgcol = imgcol_Albedo
-    .filterDate('2000-01-01', '2019-12-31');
+    .filterDate('2000-01-01', '2019-12-31')
+    .select(0);
     // .select(['Lai_500m', 'FparExtra_QC']);
     //FparExtra_QC
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
