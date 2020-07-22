@@ -59,7 +59,7 @@ function main_export(imgcol, prefix, options, year_begin, year_end){
     var task = prefix.concat('_').concat(year);
     
     var img = imgcoli.toBands();
-    pkg_export.ExportImg2(img, task, options);
+    pkg_export.ExportImg(img, task, options);
     // print(options)
   }
 }
