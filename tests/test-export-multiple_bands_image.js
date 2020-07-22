@@ -40,7 +40,7 @@ var imgcol_lai = ee.ImageCollection("MODIS/006/MOD15A2H")
 var prefix_lai = "MOD15A2H-raw-LAI_240deg_global";
 // main_export(imgcol_lai, prefix_lai, options, 2008, 2008);
 
-// Terra Emissivity 
+// 2. Terra Emissivity 
 var imgcol_emiss = imgcol_Emiss
     .filterDate('2000-01-01', '2019-12-31');
     // .select(['Lai_500m', 'FparExtra_QC']);
@@ -48,7 +48,6 @@ var imgcol_emiss = imgcol_Emiss
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
 var prefix_emiss = "MOD11A2-raw-Emiss_120deg_global";
 main_export(imgcol_emiss, prefix_emiss, options, 2000, 2019);
-
 
 
 function main_export(imgcol, prefix, options, year_begin, year_end){
