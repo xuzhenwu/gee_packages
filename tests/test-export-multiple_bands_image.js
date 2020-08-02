@@ -20,7 +20,7 @@ var options = {
     range: [-180, -60, 180, 90],
     // range: [73, 25, 105, 40], //[-180, -60, 180, 90],
     cellsize: 1 / 240,
-    ncol: 3,
+    // ncol: 3,
     // verbose:true,
     // crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
     // scale        : 463.3127165275, // prj.scale
@@ -57,7 +57,10 @@ var imgcol = imgcol_Albedo
     //FparExtra_QC
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
 var prefix = "MCD43A3-raw-Albedo_240deg_global";
-main_export(imgcol, prefix, options, 2003, 2019);
+// main_export(imgcol, prefix, options, 2003, 2019);
+
+pkg_export.ExportImg(imgcol_lai.filterDate('2017-07-01', '2017-12-31').first().select('Lai_500m'), 
+  '201707_LAI', options);
 
 
 function main_export(imgcol, prefix, options, year_begin, year_end){
