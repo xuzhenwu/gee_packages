@@ -2,7 +2,8 @@
 var imgcol_gpp = ee.ImageCollection("MODIS/006/MOD17A2H"),
     imgcol_LAI = ee.ImageCollection("MODIS/006/MOD15A2H"),
     imgcol_Emiss = ee.ImageCollection("projects/pml_evapotranspiration/PML_INPUTS/MODIS/Emiss_interp_8d"),
-    imgcol_Albedo = ee.ImageCollection("projects/pml_evapotranspiration/PML_INPUTS/MODIS/Albedo_interp_8d_v2");
+    imgcol_Albedo = ee.ImageCollection("projects/pml_evapotranspiration/PML_INPUTS/MODIS/Albedo_interp_8d_v2"),
+    ylu_LAI2019 = ee.Image("projects/pml_evapotranspiration/PML_INPUTS/MODIS/combined_LAI_ylu");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 // https://code.earthengine.google.com/235425776856f67349ffae2e1343f1ad
 // var imgcol = ee.ImageCollection("MODIS/006/MCD15A3H");
@@ -28,6 +29,7 @@ var options = {
     folder: 'MODIS_Albedo'
 };
 
+pkg_export.ExportImg(ylu_LAI2019, "ylu_LAI2019", options);
 // 1. multiple bands img
 // var task = "MOD17A2H_GPP_010deg_TP_";
 
@@ -59,8 +61,8 @@ var imgcol = imgcol_Albedo
 var prefix = "MCD43A3-raw-Albedo_240deg_global";
 // main_export(imgcol, prefix, options, 2003, 2019);
 
-pkg_export.ExportImg(imgcol_lai.filterDate('2017-07-01', '2017-12-31').first().select('Lai_500m'), 
-  '201707_LAI', options);
+// pkg_export.ExportImg(imgcol_lai.filterDate('2017-07-01', '2017-12-31').first().select('Lai_500m'), 
+//   '201707_LAI', options);
 
 
 function main_export(imgcol, prefix, options, year_begin, year_end){
