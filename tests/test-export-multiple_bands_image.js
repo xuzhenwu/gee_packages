@@ -21,7 +21,7 @@ var options = {
     range: [-180, -60, 180, 90],
     // range: [73, 25, 105, 40], //[-180, -60, 180, 90],
     cellsize: 1 / 240,
-    // ncol: 3,
+    ncol: 3,
     // verbose:true,
     // crsTransform : [463.312716528, 0, -20015109.354, 0, -463.312716527, 10007554.677], // prj.crsTransform;
     // scale        : 463.3127165275, // prj.scale
@@ -29,7 +29,7 @@ var options = {
     folder: 'MODIS_Albedo'
 };
 
-pkg_export.ExportImg(ylu_LAI2019, "ylu_LAI2019", options);
+// pkg_export.ExportImg(ylu_LAI2019, "ylu_LAI2019", options);
 // 1. multiple bands img
 // var task = "MOD17A2H_GPP_010deg_TP_";
 
@@ -40,7 +40,7 @@ var imgcol_lai = ee.ImageCollection("MODIS/006/MOD15A2H")
     //FparExtra_QC
 // var task = "MOD15A2H-raw-LAI_010deg_TP";
 var prefix_lai = "MOD15A2H-raw-LAI_240deg_global";
-// main_export(imgcol_lai, prefix_lai, options, 2008, 2008);
+main_export(imgcol_lai, prefix_lai, options, 2010, 2010);
 
 // 2. Terra Emissivity 
 var imgcol_emiss = imgcol_Emiss
@@ -73,7 +73,7 @@ function main_export(imgcol, prefix, options, year_begin, year_end){
     var task = prefix.concat('_').concat(year);
     
     var img = imgcoli.toBands();
-    pkg_export.ExportImg(img, task, options);
+    pkg_export.ExportImg2(img, task, options);
     // print(options)
   }
 }
