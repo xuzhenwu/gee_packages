@@ -92,8 +92,8 @@ function main_export(imgcol, prefix, options, year_begin, year_end){
 
 // export bandnames
 var date = imgcol_LAI.aggregate_array("system:time_start")
-    .map(function(x) {return(ee.Date(x))})
-print(date)
+    .map(function(x) {return(ee.Date(x))});
+// print(date)
 // var bandnames = img.bandNames();
 // var f = ee.FeatureCollection(ee.Feature(null, {bandname: bandnames}));
 // var task_bandname = task.concat('names');
