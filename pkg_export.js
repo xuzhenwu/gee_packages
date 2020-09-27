@@ -194,6 +194,10 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
     // type   = type   || 'drive';
     // crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
     prefix = prefix || '';
+    var nrow = options.nrow || 1;
+    var ncol = options.ncol || 1;
+
+    var ntiles = nrow * nrow;
 
     // dateList.evaluate(function(dateList) {
         var n = dateList.length;
@@ -204,7 +208,11 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
             // var task = img.get('system:id');//.getInfo();
             var task = prefix + date;
             print(task);
-            pkg_export.ExportImg(img, task, options); 
+
+            if(ntiles > 1)
+                pkg_export.ExportImg2(img, task, options);
+            else
+                pkg_export.ExportImg(img, task, options); 
         }
     // });
 };
