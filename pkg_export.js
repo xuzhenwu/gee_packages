@@ -105,7 +105,8 @@ pkg_export.ExportImg = function (Image, task, options) {
     var crsTransform = options.crsTransform;
     var dimensions   = options.dimensions || pkg_export.getDimensions(range, cellsize);
     var scale        = options.scale;
-    var unify_float  = options.unify_float || false;
+    var toFloat      = options.toFloat || false;
+    var toInt        = options.toInt   || false;
 
     function rm_slash(x) {
         if (x !== "" && x.substring(x.length - 1) === "/") 
@@ -127,8 +128,10 @@ pkg_export.ExportImg = function (Image, task, options) {
     if (dimensions) scale = undefined;
 
     // var crsTransform  = [cellsize, 0, -180, 0, -cellsize, 90]; //left-top
-    if(unify_float === true)
-        Image = Image.toFloat()
+    if(toFloat === true)
+        Image = Image.toFloat();
+    if(toInt === true)
+        Image = Image.toInt()
     var params = {
         image        : Image,
         description  : task,
