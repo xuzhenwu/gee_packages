@@ -131,7 +131,7 @@ pkg_export.ExportImg = function (Image, task, options) {
     if(toFloat === true)
         Image = Image.toFloat();
     if(toInt === true)
-        Image = Image.toInt()
+        Image = Image.toInt();
     var params = {
         image        : Image,
         description  : task,
