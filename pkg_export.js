@@ -198,6 +198,15 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
     dateList = dateList || ee.List(ImgCol.aggregate_array('system:time_start'))
         .map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
 
+print(ImgCol.aggregate_array('system:time_start'));
+print(ee.List(ImgCol.aggregate_array('system:time_start')));
+print(ee.List(ImgCol.aggregate_array('system:time_start')).map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }));
+print(ee.List(ImgCol.aggregate_array('system:time_start'))
+.map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo());
+
+
+
+
     // cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
     // type   = type   || 'drive';
     // crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
