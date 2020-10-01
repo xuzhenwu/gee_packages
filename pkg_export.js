@@ -142,7 +142,7 @@ pkg_export.ExportImg = function (Image, task, options) {
         scale        : scale,
         maxPixels    : 1e13
     };
-    
+    print("d3");
     task = folder.concat('/').concat(task);
     switch (type) {
         case 'asset':
@@ -162,6 +162,7 @@ pkg_export.ExportImg = function (Image, task, options) {
             break;
     }
     if (verbose) print(options, params);
+    print("d4");
 };
 
 
@@ -193,6 +194,7 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
     dateList = dateList || ee.List(ImgCol.aggregate_array('system:time_start'))
         .map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
 
+    print("d1");
     // cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
     // type   = type   || 'drive';
     // crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
@@ -217,6 +219,8 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
             else
                 pkg_export.ExportImg(img, task, options); 
         }
+
+        print("d2");
     // });
 };
 
