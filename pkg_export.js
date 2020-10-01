@@ -207,8 +207,11 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
 
     var ntiles = nrow * nrow;
 
+    print("c1");
     // dateList.evaluate(function(dateList) {
         var n = dateList.length;
+        print(n);
+        print(dateList);
         for (var i = 0; i < n; i++) {
             // var img  = ee.Image(colList.get(i));
             var date = dateList[i];
@@ -222,7 +225,7 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
             else
                 pkg_export.ExportImg(img, task, options); 
         }
-
+        print("c2");
     // });
 };
 
