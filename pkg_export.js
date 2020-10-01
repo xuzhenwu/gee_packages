@@ -94,8 +94,6 @@ pkg_export.getProj = function(img){
 pkg_export.ExportImg = function (Image, task, options) {
     // range, cellsize, type, folder, crs, crsTransform
     var bounds; // define export region
-   
-    print("d1");
 
     var verbose = options.verbose;
     if (verbose === undefined) verbose = false;
@@ -109,7 +107,7 @@ pkg_export.ExportImg = function (Image, task, options) {
     var scale        = options.scale;
     var toFloat      = options.toFloat || false;
     var toInt        = options.toInt   || false;
-    print("d2");
+
     function rm_slash(x) {
         if (x !== "" && x.substring(x.length - 1) === "/") 
             x = x.substring(0, x.length - 1);
@@ -118,7 +116,7 @@ pkg_export.ExportImg = function (Image, task, options) {
     folder = rm_slash(folder);
     
     bounds = ee.Geometry.Rectangle(range, 'EPSG:4326', false); //pkg_export.get_bound(range);
-    print("d3");
+
     if (crsTransform) {
         dimensions = undefined;
         scale = undefined;
@@ -128,8 +126,6 @@ pkg_export.ExportImg = function (Image, task, options) {
         // print("debug", scale, dimensions)
     }
     if (dimensions) scale = undefined;
-
-    print("d4");
 
     // var crsTransform  = [cellsize, 0, -180, 0, -cellsize, 90]; //left-top
     if(toFloat === true)
@@ -198,15 +194,6 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
     dateList = dateList || ee.List(ImgCol.aggregate_array('system:time_start'))
         .map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo();
 
-print(ImgCol.aggregate_array('system:time_start'));
-print(ee.List(ImgCol.aggregate_array('system:time_start')));
-print(ee.List(ImgCol.aggregate_array('system:time_start')).map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }));
-print(ee.List(ImgCol.aggregate_array('system:time_start'))
-.map(function(date){ return ee.Date(date).format('yyyy-MM-dd'); }).getInfo());
-
-
-
-
     // cellsize = cellsize || pkg_export.getProj(Image)['crsTransform'][0];
     // type   = type   || 'drive';
     // crs    = crs    || 'EPSG:4326'; // 'SR-ORG:6974';
@@ -216,7 +203,6 @@ print(ee.List(ImgCol.aggregate_array('system:time_start'))
 
     var ntiles = nrow * nrow;
 
-    print("c1");
     // dateList.evaluate(function(dateList) {
         var n = dateList.length;
         print(n);
@@ -234,7 +220,7 @@ print(ee.List(ImgCol.aggregate_array('system:time_start'))
             else
                 pkg_export.ExportImg(img, task, options); 
         }
-        print("c2");
+
     // });
 };
 
