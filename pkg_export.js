@@ -143,7 +143,7 @@ pkg_export.ExportImg = function (Image, task, options) {
                 "uint8": img.toUint8(),
                 "uint16": img.toUint16(),
                 "uint32": img.toUint32()}
-  
+        print(types["float"]);
         return types[type]
     }
     if(imgtype !== undefined)
