@@ -148,6 +148,7 @@ pkg_export.ExportImg = function (Image, task, options) {
     if(imgtype !== undefined)
       Image = trans_imgtype(Image,imgtype);
       
+    print("s1");
     var params = {
         image        : Image,
         description  : task,
@@ -222,16 +223,12 @@ pkg_export.ExportImgCol = function(ImgCol, dateList, options, prefix)
 
     // dateList.evaluate(function(dateList) {
         var n = dateList.length;
-        print(n);
-        print(dateList);
         for (var i = 0; i < n; i++) {
             // var img  = ee.Image(colList.get(i));
             var date = dateList[i];
             var img  = ee.Image(ImgCol.filterDate(date).first()); 
             // var task = img.get('system:id');//.getInfo();
             var task = prefix + date;
-            print(task);
-
             if(ntiles > 1)
                 pkg_export.ExportImg2(img, task, options);
             else
