@@ -105,8 +105,7 @@ pkg_export.ExportImg = function (Image, task, options) {
     var crsTransform = options.crsTransform;
     var dimensions   = options.dimensions || pkg_export.getDimensions(range, cellsize);
     var scale        = options.scale;
-    var toFloat      = options.toFloat || false;
-    var toInt        = options.toInt   || false;
+    var imgtype      = options.imgtype;
 
     function rm_slash(x) {
         if (x !== "" && x.substring(x.length - 1) === "/") 
@@ -128,10 +127,27 @@ pkg_export.ExportImg = function (Image, task, options) {
     if (dimensions) scale = undefined;
 
     // var crsTransform  = [cellsize, 0, -180, 0, -cellsize, 90]; //left-top
-    if(toFloat === true)
-        Image = Image.toFloat();
-    if(toInt === true)
-        Image = Image.toInt();
+    // see https://github.com/fitoprincipe/geetools-code-editor
+    var trans_imgtype = function(img, imgtype) {
+        var types = {  "float":img.toFloat(), 
+                "byte":img.toByte(), 
+                "int":img.toInt(),
+                "double":img.toDouble(),
+                "long": img.toLong(),
+                "short": img.toShort(),
+                "int8": img.toInt8(),
+                "int16": img.toInt16(),
+                "int32": img.toInt32(),
+                "int64": img.toInt64(),
+                "uint8": img.toUint8(),
+                "uint16": img.toUint16(),
+                "uint32": img.toUint32()}
+  
+        return types[type]
+    }
+    if(imgtype !== undefined)
+      Image = trans_imgtype(Image,imgtype);
+      
     var params = {
         image        : Image,
         description  : task,
@@ -142,6 +158,7 @@ pkg_export.ExportImg = function (Image, task, options) {
         scale        : scale,
         maxPixels    : 1e13
     };
+    
 
     task = folder.concat('/').concat(task);
     switch (type) {
