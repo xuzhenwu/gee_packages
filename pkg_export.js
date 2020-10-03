@@ -148,7 +148,7 @@ pkg_export.ExportImg = function (Image, task, options) {
     if(imgtype !== undefined)
       Image = trans_imgtype(Image,imgtype);
       
-    print("s1");
+    print(Image);
     var params = {
         image        : Image,
         description  : task,
