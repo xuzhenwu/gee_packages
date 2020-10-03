@@ -128,7 +128,6 @@ pkg_export.ExportImg = function (Image, task, options) {
 
     // var crsTransform  = [cellsize, 0, -180, 0, -cellsize, 90]; //left-top
     // see https://github.com/fitoprincipe/geetools-code-editor
-    print(Image);
     var trans_imgtype = function(img, imgtype) {
         var types = {  "float":img.toFloat(), 
                 "byte":img.toByte(), 
@@ -143,13 +142,11 @@ pkg_export.ExportImg = function (Image, task, options) {
                 "uint8": img.toUint8(),
                 "uint16": img.toUint16(),
                 "uint32": img.toUint32()}
-        print(types["float"]);
-        return types[type]
+        return types[imgtype]
     }
     if(imgtype !== undefined)
       Image = trans_imgtype(Image, imgtype);
       
-    print(Image);
     var params = {
         image        : Image,
         description  : task,
